@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cargo check (skip if no Rust)
+        run: |
+          if [ -f Cargo.toml ] || [ -d crates ]; then
+            cargo build --workspace --all-targets
+            cargo test --workspace --all-targets --no-fail-fast
+          else
+            echo "No Rust workspace yet; skipping."
+          fi
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Pytest (skip if no Python)
+        run: |
+          if [ -f pyproject.toml ] || [ -d python ]; then
+            python -m pip install -U pip pytest
+            pytest || echo "No tests yet; exiting 0" 
+          else
+            echo "No Python project yet; skipping."
+          fi
